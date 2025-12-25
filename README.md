@@ -10,7 +10,7 @@
 
 Developed for **Research Purposes** at the **University of Jember**, Faculty of Engineering.
 
----
+--- 
 
 ## FunFact
 ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other established companies including Aditya Developer, Aditya Electronics, and Astropulse Audio.
