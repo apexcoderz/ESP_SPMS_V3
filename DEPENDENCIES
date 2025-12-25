@@ -24,4 +24,6 @@ IMPORTANT NOTES:
   1. Please credit the respective library authors when using this project.
   2. Ensure compliance with each library's license.
   3. Maintain the specified library versions for compatibility.
+
+Additional note: You can use the library files we provide directly for your project. Simply copy and paste them into your Arduino libraries folder.
 ====================================================================
