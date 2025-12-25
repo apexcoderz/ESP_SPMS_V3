@@ -3,12 +3,12 @@
  * SOFTWARE LICENSE AGREEMENT (NON-COMMERCIAL USE ONLY)
  * ============================================================================
  * System Name: Smart Plant Monitoring System (SPMS)
- * Copyright (c) 2024-2026 ApexCoders. All rights reserved.
+ * Copyright (c) 2024-2026 ApexCoderz. All rights reserved.
  *
  * TERMS AND CONDITIONS:
  *
  * 1. OWNERSHIP & ATTRIBUTION:
- * The Software remains the sole intellectual property of ApexCoders.
+ * The Software remains the sole intellectual property of ApexCoderz.
  * Any copy or substantial portion of this Software must include the above 
  * copyright notice. No user may re-license or claim ownership of this 
  * Software under their own name.
@@ -16,7 +16,7 @@
  * 2. NON-COMMERCIAL RESTRICTION:
  * This Software and any of its derivatives MAY NOT be used, distributed, 
  * or sold for commercial purposes, financial gain, or as part of a 
- * paid product/service without prior written consent from ApexCoders.
+ * paid product/service without prior written consent from ApexCoderz.
  *
  * 3. MODIFICATION & DERIVATIVES:
  * Modification of the source code is permitted for personal or research 
