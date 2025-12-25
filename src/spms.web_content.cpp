@@ -245,7 +245,7 @@ String getHTML() {
   </div>
   
   <footer style="text-align: center; margin-top: 40px; padding: 20px 0; font-size: 0.85em; opacity: 0.7; border-top: 1px solid rgba(255,255,255,0.1);">
-          <p>© 2026 <strong>ApexCoders X CodecZtron</strong></p>
+          <p>© 2026 <strong>ApexCoders X Codecztron</strong></p>
           <p style="font-size: 0.8em; margin-top: 5px;">Smart Plant Monitoring System • All Rights Reserved</p>
       </footer>
     </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
