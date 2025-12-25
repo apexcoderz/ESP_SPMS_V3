@@ -93,7 +93,6 @@ ESP-SPMS-V3/
 ├── DEPENDENCIES                  
 ├── LICENCE                     
 └── README.md
-```
 
 ---
 
