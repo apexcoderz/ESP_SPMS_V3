@@ -1,6 +1,6 @@
 /*!
  * SPMS Library
- * Copyright (c) 2024-2026 ApexCoders
+ * Copyright (c) 2024-2026 ApexCoderz
  * Licensed under Custom Non-Commercial License. 
  * See LICENSE file for details.
  * 

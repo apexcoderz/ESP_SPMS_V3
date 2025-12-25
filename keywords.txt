@@ -1,5 +1,5 @@
 #######################################
-# Syntax Coloring Map For ESP32-SPMS
+# Syntax Coloring Map For ESP-SPMS-V3
 #######################################
 
 #######################################
@@ -53,6 +53,7 @@ RELAY_PIN	LITERAL1
 DS18B20_PIN	LITERAL1
 SOIL_MOISTURE_PIN	LITERAL1
 AdityaProjects	LITERAL1
+ApexCoderz  LITERAL1
 Codecztron	LITERAL1
 PARTICLE_BURST	LITERAL1
 GLITCH_REVEAL	LITERAL1

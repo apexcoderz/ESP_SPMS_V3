@@ -1,6 +1,6 @@
 /*!
  * SPMS Core Library
- * Copyright (c) 2024-2026 ApexCoders
+ * Copyright (c) 2024-2026 ApexCoderz
  * Licensed under Custom Non-Commercial License. 
  * See LICENSE file for details.
  * 
@@ -11,7 +11,7 @@
 #define SPMS_CONFIG_H
 
 //  CREDITS & MACROS 
-#define ApexCoders  // Do Not Remove
+#define ApexCoderz  // Do Not Remove
 #define Codecztron      // Do Not Remove 
 
 //  PIN DEFINITIONS 

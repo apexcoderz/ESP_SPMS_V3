@@ -2,18 +2,20 @@
 
 ![Platform](https://img.shields.io/badge/Platform-ESP32/8266-blue)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-orange)
+![Language](https://img.shields.io/badge/Language-C-grey)
 ![Language](https://img.shields.io/badge/Language-html-blue)
 ![License](https://img.shields.io/badge/License-Non--Commercial-red)
 ![Version](https://img.shields.io/badge/Version-3.0-green)
 
 **ESP32-SPMS v3.0** is an advanced IoT solution designed for precision agriculture and smart gardening research. It integrates TinyML (Machine Learning) algorithms to make intelligent watering decisions based on environmental data, coupled with a responsive, modern Web UI and real-time OLED visualization.
 
-Developed for **Research Purposes** at the **University of Jember**, Faculty of Engineering.
+Developed for **Research Purposes** at the **University of Jember**, Department of Electrical Engineering, Faculty of Engineering.
 
 --- 
 
 ## FunFact
-ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other established companies including Aditya Developer, Aditya Electronics, and Astropulse Audio.
+ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other established companies including Aditya Developer, Aditya Electronics, and Astropulse Audio.                     
+Meanwhile, CODECZTRON is the moniker of a university student named Andri Kusuma Ramadani, who collaborates with Apexcoders to ensure that this program operates as close to perfection as possible.
 
 ## Key Features
 
@@ -37,12 +39,13 @@ ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other 
 
 ## Hardware Requirements
 
-*   **Microcontroller:** ESP32 or ESP8266 Development Board (DOIT DevKit V1 or similar).
+*   **Microcontroller:** ESP32 or ESP8266 Development Board.
+*   **Module:** Logical Level Shifter
 *   **Sensors:**
     *   **AHT10:** Air Temperature & Humidity (I2C).
     *   **DS18B20:** Soil Temperature (OneWire).
     *   **Capacitive Soil Moisture Sensor:** Analog (v1.2 recommended).
-*   **Actuator:** 5V Relay Module (Active LOW).
+*   **Actuator:** 5V 1CH Relay Module (Active LOW).
 *   **Display:** SSD1306 OLED 0.96" (I2C).
 
 ### Pin Configuration (`spms.config.h`)
@@ -61,12 +64,12 @@ ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other 
 
 The project follows a modular architecture for better maintainability and scalability:
 
-ESP-SPMS-V3/
-├── examples/
-│   └── ESP-SPMS-V3
-│       └──ESP-SPMS-V3.ino
-├── src/            
-│   ├── ESP-SPMS-V3.h
+ESP-SPMS-V3/                  
+├── examples/               
+│   └── ESP-SPMS-V3                              
+│. . . .└──ESP-SPMS-V3.ino                  
+├── src/                                 
+│   ├── ESP-SPMS-V3.h                     
 │   ├── config.h             
 │   ├── types.h             
 │   ├── globals.h            
@@ -80,10 +83,13 @@ ESP-SPMS-V3/
 │   ├── network_manager.h    
 │   ├── network_manager.cpp  
 │   ├── system_manager.h     
-│   └── system_manager.cpp  
-├── library.properties
-├── keywords.txt
-├── ABOUT
-├── DEPENDENCIES
-├── LICENCE
+│   └── system_manager.cpp           
+├── library.properties                  
+├── keywords.txt                  
+├── ABOUT               
+├── DEPENDENCIES                  
+├── LICENCE                     
 └── README.md
+
+## Important Note
+Contributors are allowed 
