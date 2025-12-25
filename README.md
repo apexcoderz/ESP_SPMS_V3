@@ -14,8 +14,8 @@ Developed for **Research Purposes** at the **University of Jember**, Department 
 --- 
 
 ## FunFact
-ApexCoders is a subsidiary of **Aditya Projects.id**, which also oversees other established companies including Aditya Developer, Aditya Electronics, and Astropulse Audio.                     
-Meanwhile, CODECZTRON is the moniker of a university student named Andri Kusuma Ramadani, who collaborates with Apexcoders to ensure that this program operates as close to perfection as possible.
+ApexCoderz is a subsidiary of **Aditya Projects.id**, which also oversees other established companies including Aditya Developer, Aditya Electronics, and Astropulse Audio.                     
+Meanwhile, CODECZTRON is the moniker of a university student named Andri Kusuma Ramadani, who collaborates with ApexCoderz to ensure that this program operates as close to perfection as possible.
 
 ## Key Features
 

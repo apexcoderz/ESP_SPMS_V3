@@ -1,6 +1,6 @@
 /*!
  * SPMS Library
- * Copyright (c) 2024-2026 ApexCoders
+ * Copyright (c) 2024-2026 ApexCoderz
  * Licensed under Custom Non-Commercial License. 
  * See LICENSE file for details.
  * 
@@ -19,7 +19,6 @@ String getHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Plant Monitoring System v3.0</title>
   <style>
-    /* CSS STYLE SAMA SEPERTI SEBELUMNYA, TIDAK DIUBAH */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -244,7 +243,13 @@ String getHTML() {
       </div>
     </div>
   </div>
-
+  
+  <footer style="text-align: center; margin-top: 40px; padding: 20px 0; font-size: 0.85em; opacity: 0.7; border-top: 1px solid rgba(255,255,255,0.1);">
+          <p>© 2026 <strong>ApexCoders X CodecZtron</strong></p>
+          <p style="font-size: 0.8em; margin-top: 5px;">Smart Plant Monitoring System • All Rights Reserved</p>
+      </footer>
+    </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script>
     let eventSource;
@@ -383,9 +388,6 @@ String getHTML() {
       await fetch('/api/automode', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'state='+state});
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // FUNGSI BARU YANG DIPERBARUI (JS)
-    // ═══════════════════════════════════════════════════════════════
     async function saveWiFi() {
       const ssid = document.getElementById('wifiSSID').value;
       const pass = document.getElementById('wifiPassword').value;
@@ -419,7 +421,6 @@ String getHTML() {
         msg.style.color = "#ff5252"; 
       }
     }
-    // ═══════════════════════════════════════════════════════════════
 
     function toggleStaticIPFields() {
       const checked = document.getElementById('useStaticIP').checked;

@@ -12,11 +12,11 @@
  * Institution: University Of Jember
  * Faculty : Faculty of Engineering
  * Department: Department of Electrical Engineering
- * Lead Programmer: ACH Milladitya Lazuwardi << ApexCoders >>
+ * Lead Programmer: ACH Milladitya Lazuwardi << ApexCoderz >>
  * Contributor: Andri Kusumsa Ramadhani << Codecztron >>
  * Principal Investigator: Muhammad Riza Darmawan S.T., M.T.
  * 
- * Copyright (c) 2026 Aditya Projects.id (ApexCoders & Codecztron). All rights reserved.
+ * Copyright (c) 2026 Aditya Projects.id (ApexCoderz & Codecztron). All rights reserved.
  * This software and associated documentation files are proprietary to 
  * Aditya Projects.id X Codecztron. Usage, copying, modification, merger, publication, 
  * distribution, sublicensing, and/or sale of this software is strictly 
@@ -106,7 +106,7 @@ void loop() {
   unsigned long currentMillis = millis();
   systemState.uptime = currentMillis;
   
-  #if defined(ApexCoders) && defined(Codecztron)
+  #if defined(ApexCoderz) && defined(Codecztron)
 
   // SPLASH SCREEN + MACHINE STATE DISP
   if (currentState != FINISHED) {
@@ -201,7 +201,7 @@ void loop() {
   layarOled.setCursor(0, 15);
   layarOled.println("Unauthorized Usage!");
   layarOled.setCursor(0, 30);
-  layarOled.println("ApexCoders");
+  layarOled.println("ApexCoderz");
   layarOled.display();
   while(true) { 
     delay(1000); 
