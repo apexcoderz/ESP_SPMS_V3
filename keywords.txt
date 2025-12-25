@@ -1,0 +1,67 @@
+#######################################
+# Syntax Coloring Map For ESP32-SPMS
+#######################################
+
+#######################################
+# Datatypes & Structs (KEYWORD1)
+#######################################
+SensorData	KEYWORD1
+ChartData	KEYWORD1
+SystemState	KEYWORD1
+MLModel	KEYWORD1
+PlantPreset	KEYWORD1
+AnimState	KEYWORD1
+Particle	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+setupDisplay	KEYWORD2
+showSplashScreen	KEYWORD2
+updateDisplay	KEYWORD2
+showInfoOnOLED	KEYWORD2
+setupSensors	KEYWORD2
+readSensors	KEYWORD2
+controlRelay	KEYWORD2
+setupWiFi	KEYWORD2
+setupWebServer	KEYWORD2
+saveWiFiCredentials	KEYWORD2
+loadWiFiCredentials	KEYWORD2
+saveStaticIPConfig	KEYWORD2
+loadStaticIPConfig	KEYWORD2
+loadMLConfig	KEYWORD2
+saveMLConfig	KEYWORD2
+addChartDataPoint	KEYWORD2
+getChartDataJSON	KEYWORD2
+runMLModel	KEYWORD2
+getHTML	KEYWORD2
+initParticles	KEYWORD2
+updateParticles	KEYWORD2
+drawParticles	KEYWORD2
+drawGlitchReveal	KEYWORD2
+drawHologramFrame	KEYWORD2
+drawPulseGlow	KEYWORD2
+initDissolve	KEYWORD2
+drawDigitalDissolve	KEYWORD2
+
+#######################################
+# Constants & Macros (LITERAL1)
+#######################################
+OLED_SDA	LITERAL1
+OLED_SCL	LITERAL1
+RELAY_PIN	LITERAL1
+DS18B20_PIN	LITERAL1
+SOIL_MOISTURE_PIN	LITERAL1
+AdityaProjects	LITERAL1
+Codecztron	LITERAL1
+PARTICLE_BURST	LITERAL1
+GLITCH_REVEAL	LITERAL1
+HOLOGRAM_FRAME	LITERAL1
+PULSE_GLOW	LITERAL1
+DIGITAL_DISSOLVE	LITERAL1
+INFO_DISPLAY	LITERAL1
+FINISHED	LITERAL1
+sensorData	LITERAL1
+chartData	LITERAL1
+systemState	LITERAL1
+mlModel	LITERAL1

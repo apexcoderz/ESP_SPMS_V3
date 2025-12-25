@@ -1,0 +1,27 @@
+{
+  "name": "Smart Plant Monitoring System",
+  "version": "3.10.4",
+  "description": "Core library for SPMS, providing base classes for hardware managers.",
+  "keywords": "plant, monitoring, esp32, sensor",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ApexCoders"
+  },
+  "authors": [
+    {
+      "name": "ApexCoders",
+      "maintainer": true
+    }
+  ],
+  "frameworks": "arduino",
+  "platforms": "espressif32, espressif8266",
+  "dependencies": {
+    "bblanchon/ArduinoJson": "6.21.5",
+    "paulstoffregen/OneWire": "2.3.8",
+    "adafruit/Adafruit GFX Library": "1.12.1",
+    "adafruit/Adafruit AHTX0": "2.0.5",
+    "adafruit/Adafruit SSD1306": "2.5.16",
+    "milesburton/DallasTemperature": "4.0.5",
+    "ottowinter/ESPAsyncWebServer-esphome": "3.1.0"
+  }
+}
