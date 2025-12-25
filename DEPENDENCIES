@@ -6,7 +6,7 @@ LIBRARY & CREDIT
 3.  Wire / SPI          - Arduino                (Built-in)
 4.  SPIFFS / LittleFS   - Espressif Systems      (Built-in)
 5.  OneWire             - Jim Studt, et al.      (v2.3.8)
-6.  Preferences         - Espressif Systems      (v2.2.2 / Built-in)
+6.  Preferences         - Espressif Systems      (Built-in)
 7.  Adafruit GFX        - Adafruit               (v1.12.1)
 8.  Adafruit AHTX0      - Adafruit               (v2.0.5)
 9.  Adafruit SSD1306    - Adafruit               (v2.5.16)
