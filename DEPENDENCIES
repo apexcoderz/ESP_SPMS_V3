@@ -1,24 +1,27 @@
-═══════════════════════════════════════════════════════════════
-LIBRARY & CREDIT
-═══════════════════════════════════════════════════════════════
-## External Libraries
-1.  ArduinoJson         - Benoit Blanchon        (v6.21.5)
-5.  OneWire             - Jim Studt, et al.      (v2.3.8)
-7.  Adafruit GFX        - Adafruit               (v1.12.1)
-8.  Adafruit AHTX0      - Adafruit               (v2.0.5)
-9.  Adafruit SSD1306    - Adafruit               (v2.5.16)
-10. DallasTemperature   - Miles Burton           (v4.0.5)
-11. ESPAsyncWebServer   - me-no-dev / Hryniewski (v3.6.0)
-13. AsyncTCP            - me-no-dev              (v1.1.1)
+====================================================================
+                LIBRARY DEPENDENCIES & CREDITS
+====================================================================
 
-## Built-in Libraries
-2.  WiFi / IPAddress    - Espressif Systems      (Built-in)
-3.  Wire / SPI          - Arduino                (Built-in)
-4.  SPIFFS / LittleFS   - Espressif Systems      (Built-in)
-6.  Preferences         - Espressif Systems      (Built-in)
-12. IPAddress           - Espressif Systems      (Built-in)
-═══════════════════════════════════════════════════════════════
-important: 1. Please give credit to the respective library authors when using this project.
-           2. Make sure to check each library's license for compliance.
-           3. Make sure to keep the library versions consistent or same as dependencies for compatibility.
-═══════════════════════════════════════════════════════════════
+# External Libraries
+1.  ArduinoJson        - Benoit Blanchon           ( v6.21.5 )
+2.  OneWire            - Jim Studt, et al.         ( v2.3.8  )
+3.  Adafruit GFX       - Adafruit                  ( v1.12.1 )
+4.  Adafruit AHTX0     - Adafruit                  ( v2.0.5  )
+5.  Adafruit SSD1306   - Adafruit                  ( v2.5.16 )
+6.  DallasTemperature  - Miles Burton              ( v4.0.5  )
+7.  ESPAsyncWebServer  - me-no-dev / Hryniewski    ( v3.6.0  )
+8.  AsyncTCP           - me-no-dev                 ( v1.1.1  )
+
+# Built-in Libraries
+9.   WiFi / IPAddress   - Espressif Systems         ( Built-in )
+10.  Wire / SPI         - Arduino                   ( Built-in )
+11.  SPIFFS / LittleFS  - Espressif Systems         ( Built-in )
+12.  Preferences        - Espressif Systems         ( Built-in )
+13.  IPAddress          - Espressif Systems         ( Built-in )
+
+====================================================================
+IMPORTANT NOTES:
+  1. Please credit the respective library authors when using this project.
+  2. Ensure compliance with each library's license.
+  3. Maintain the specified library versions for compatibility.
+====================================================================
