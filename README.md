@@ -2,6 +2,7 @@
 
 ![Platform](https://img.shields.io/badge/Platform-ESP32/8266-blue)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-orange)
+![Language](https://img.shields.io/badge/Language-C-grey)
 ![Language](https://img.shields.io/badge/Language-html-blue)
 ![License](https://img.shields.io/badge/License-Non--Commercial-red)
 ![Version](https://img.shields.io/badge/Version-3.0-green)
