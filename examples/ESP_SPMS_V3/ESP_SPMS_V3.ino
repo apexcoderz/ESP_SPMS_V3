@@ -49,8 +49,13 @@
 // including all library
 #include <Arduino.h>
 #include <ESP_SPMS_V3.h>
+<<<<<<< HEAD
 #define ApexCoderz
 #define Codecztron
+=======
+#include ApexCoderz
+#include Codecztron
+>>>>>>> 5755c2ef5c0664a9166a1429601abe4b315286e8
 
 // ============================================================================
 // SETUP FUNCTION

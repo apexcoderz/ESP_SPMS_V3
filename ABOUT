@@ -1,5 +1,28 @@
-ABOUT US:
-Main Programmer : ACH Milladitya Lazuwardi
-Aka             : ApexCoderz / Aditya Project.id
-Contributors    : Andri Kusuma Ramadani
-Aka             : CODECZTRON
+ESP_SPMS_V3 Library
+===================
+
+Description:
+------------
+ESP_SPMS_V3 is a robust and efficient library designed for seamless integration with ESP-based Smart Power Management Systems (SPMS). It provides reliable tools and APIs for monitoring, controlling, and optimizing power usage in embedded IoT projects.
+
+Authors & Contributors:
+-----------------------
+Lead Developer:
+    - ACH Milladitya Lazuwardi (ApexCoderz / Aditya Project.id)
+
+Contributors:
+    - Andri Kusuma Ramadani (Codecztron)
+
+License:
+--------
+This library is released under the NON-COMMERCIAL USE ONLY License. See LICENSE file for details.
+
+Repository:
+---------------------------
+GitHub: https://github.com/apexcoderz/ESP_SPMS_V3  
+
+Contact:
+--------
+For support, suggestions, or contributions, please open an issue on GitHub or contact the lead developer at: adityadevelopers.id@gmail.com
+
+Copyright © 2026
