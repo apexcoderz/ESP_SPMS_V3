@@ -1,9 +1,9 @@
 /*!
  * SPMS Library
  * Copyright (c) 2024-2026 ApexCoderz
- * Licensed under Custom Non-Commercial License. 
+ * Licensed under Custom Non-Commercial License.
  * See LICENSE file for details.
- * 
+ *
  * @file spms.system_manager.h
  */
 
@@ -18,6 +18,8 @@ extern void saveStaticIPConfig();
 extern bool loadStaticIPConfig();
 extern void loadMLConfig();
 extern void saveMLConfig();
+extern void loadCalibrationConfig();
+extern void saveCalibrationConfig();
 extern void addChartDataPoint();
 String getChartDataJSON();
 extern void runMLModel();

@@ -1,9 +1,9 @@
 /*!
  * SPMS Library
  * Copyright (c) 2024-2026 ApexCoderz
- * Licensed under Custom Non-Commercial License. 
+ * Licensed under Custom Non-Commercial License.
  * See LICENSE file for details.
- * 
+ *
  * @file spms.types.h
  */
 
@@ -14,16 +14,18 @@
 #include <IPAddress.h>
 
 // Sensor data structure
-struct SensorData {
+struct SensorData
+{
   float airTemp = 0;
   float airHumidity = 0;
   float soilTemp = 0;
-  int   soilMoisture = 0;
-  int   soilMoisturePercent = 0;
+  int soilMoisture = 0;
+  int soilMoisturePercent = 0;
 };
 
-// Historical data 
-struct ChartData {
+// Historical data
+struct ChartData
+{
   float temps[72]; // Using constant 72 manually to avoid circular dependency
   float humidity[72];
   float soilMoisture[72];
@@ -33,14 +35,15 @@ struct ChartData {
 };
 
 // System states
-struct SystemState {
-  bool    relayState = false;
-  bool    autoMode = true;
-  float   mlScore = 0;
-  bool    wifiConnected = false;
-  String  ssid = "";
-  String  ipAddress = "";
-  bool    useStaticIP = false;
+struct SystemState
+{
+  bool relayState = false;
+  bool autoMode = true;
+  float mlScore = 0;
+  bool wifiConnected = false;
+  String ssid = "";
+  String ipAddress = "";
+  bool useStaticIP = false;
   IPAddress staticIP;
   IPAddress gateway;
   IPAddress subnet;
@@ -48,9 +51,14 @@ struct SystemState {
   unsigned long uptime = 0;
   int wifiRSSI = 0;
   bool isWifiConfiguring = false;
+  float calAirTemp = 0.0;      // Kalibrasi Suhu Udara
+  float calAirHum = 0.0;       // Kalibrasi Kelembaban Udara
+  float calSoilMoisture = 0.0; // Kalibrasi Kelembaban Tanah
+  float calSoilTemp = 0.0;     // Kalibrasi Suhu Tanah
 };
 
-struct MLModel {
+struct MLModel
+{
   float soilMoistureWeight = 0.50;
   float soilTempWeight = 0.20;
   float airHumidityWeight = 0.20;
@@ -66,7 +74,8 @@ struct MLModel {
   String plantType = "General";
 };
 
-struct PlantPreset {
+struct PlantPreset
+{
   String name;
   float moistureTarget;
   float threshold;
@@ -74,7 +83,8 @@ struct PlantPreset {
 };
 
 // Animation States
-enum AnimState {
+enum AnimState
+{
   PARTICLE_BURST,
   GLITCH_REVEAL,
   HOLOGRAM_FRAME,
@@ -84,7 +94,8 @@ enum AnimState {
   FINISHED
 };
 
-struct Particle {
+struct Particle
+{
   float x, y, vx, vy;
   bool active;
 };
