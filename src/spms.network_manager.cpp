@@ -39,8 +39,8 @@ const char *root_ca =
 void setupMQTT()
 {
   // Konfigurasi SSL
-  espClient.setCACert(root_ca);
-  // espClient.setInsecure(); // Gunakan ini jika sertifikat di atas gagal
+  // espClient.setCACert(root_ca);
+  espClient.setInsecure(); // Gunakan ini jika sertifikat di atas gagal
 
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
 }

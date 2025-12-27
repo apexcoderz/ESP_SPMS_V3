@@ -32,24 +32,10 @@
 #define CHART_DATA_POINTS 72         // 72 points = 24 Hour
 #define CHART_SAVE_INTERVAL 1200000  // 20 Minute
 
-#ifndef MQTT_BROKER
-#define MQTT_BROKER "ALAMAT_DEFAULT_JIKA_ENV_GAGAL"
-#endif
-
-#ifndef MQTT_PORT
-#define MQTT_PORT 8883
-#endif
-
-#ifndef MQTT_USER
-#define MQTT_USER "USER_DEFAULT"
-#endif
-
-#ifndef MQTT_PASSWORD
-#define MQTT_PASSWORD "PASS_DEFAULT"
-#endif
-
-#ifndef MQTT_TOPIC_PUB
-#define MQTT_TOPIC_PUB "spms/data"
-#endif
+#define MQTT_BROKER     "" 
+#define MQTT_PORT       8883                        
+#define MQTT_USER       ""                
+#define MQTT_PASSWORD   ""         
+#define MQTT_TOPIC_PUB  ""
 
 #endif
