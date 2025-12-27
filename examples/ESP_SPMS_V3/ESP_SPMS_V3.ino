@@ -92,6 +92,7 @@ void setup()
 
   setupWiFi();
   setupWebServer();
+  setupMQTT();
 
   // Initialize chart data
   memset(&chartData, 0, sizeof(chartData));
@@ -258,6 +259,20 @@ void loop()
   if (systemState.wifiConnected && !isAPMode)
   {
     systemState.wifiRSSI = WiFi.RSSI();
+  }
+
+  // MQTT HANDLER
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    checkMQTTConnection();
+
+    // Kirim data setiap 5 detik
+    static unsigned long lastMqttPub = 0;
+    if (millis() - lastMqttPub > 1000)
+    {
+      publishSensorData();
+      lastMqttPub = millis();
+    }
   }
 
   delay(10);

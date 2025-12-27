@@ -55,6 +55,8 @@ struct SystemState
   float calAirHum = 0.0;       // Kalibrasi Kelembaban Udara
   float calSoilMoisture = 0.0; // Kalibrasi Kelembaban Tanah
   float calSoilTemp = 0.0;     // Kalibrasi Suhu Tanah
+  // MQTT State
+  bool mqttConnected = false;
 };
 
 struct MLModel

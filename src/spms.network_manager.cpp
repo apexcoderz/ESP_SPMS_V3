@@ -16,6 +16,84 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
+// Instansiasi Client
+WiFiClientSecure espClient;
+PubSubClient mqttClient(espClient);
+
+// Root CA HiveMQ (Let's Encrypt ISRG Root X1)
+// Sebenarnya bisa pakai setInsecure() untuk skip verifikasi, tapi ini lebih aman.
+const char *root_ca =
+    "-----BEGIN CERTIFICATE-----\n"
+    "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n"
+    "TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n"
+    "cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMTUwNjA0MTEwNDM4\n"
+    "WhcNMzUwNjA0MTEwNDM4WjBPMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu\n"
+    "ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBY\n"
+    "MTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK3ullqGPhhvxm9eOgye\n"
+    "H4L85nQjy4mgKVByNrjyftY+MaZLdvhBWIgquCAsVMG6P56X72+5LMMj4VfdNYq9\n"
+    "T72tFthlabpldcO2UjradD4ZYIeLN6R67Ysg621fbgfJ9CVxK8f58oH+3fPq7q7o\n"
+    "996+G0AsxFP1vFpZ+Fp1l9qpsLLc491fb1z9/R98g1391zlh121K8P+9B0b1t2q6\n"
+    "q2+5m+Gq/j0kFeJ9L5R1L6t6+7+5h+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+\n"
+    "-----END CERTIFICATE-----\n";
+
+void setupMQTT()
+{
+  // Konfigurasi SSL
+  espClient.setCACert(root_ca);
+  // espClient.setInsecure(); // Gunakan ini jika sertifikat di atas gagal
+
+  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+}
+
+void checkMQTTConnection()
+{
+  if (!mqttClient.connected())
+  {
+    Serial.print("$NET> Connecting to HiveMQ...");
+
+    // Create random Client ID
+    String clientId = "ESP32-SPMS-" + String(random(0xffff), HEX);
+
+    if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASSWORD))
+    {
+      Serial.println("Connected!");
+      systemState.mqttConnected = true;
+    }
+    else
+    {
+      Serial.print("Failed, rc=");
+      Serial.println(mqttClient.state());
+      systemState.mqttConnected = false;
+    }
+  }
+  mqttClient.loop();
+}
+
+void publishSensorData()
+{
+  if (!mqttClient.connected())
+    return;
+
+  // 1. Buat JSON Object
+  StaticJsonDocument<512> doc;
+
+  // Masukkan data dari struct global sensorData
+  doc["temp"] = sensorData.airTemp;
+  doc["hum"] = sensorData.airHumidity;
+  doc["soil_moist"] = sensorData.soilMoisturePercent;
+  doc["soil_temp"] = sensorData.soilTemp;
+  doc["ml_score"] = systemState.mlScore; // Hasil analisis ML
+  doc["relay"] = systemState.relayState;
+
+  // 2. Serialize ke String
+  char jsonBuffer[512];
+  serializeJson(doc, jsonBuffer);
+
+  // 3. Publish ke HiveMQ
+  mqttClient.publish(MQTT_TOPIC_PUB, jsonBuffer);
+  Serial.println("$NET> JSON Published to HiveMQ");
+}
+
 // WIFI SETUP - with Static IP
 void setupWiFi()
 {

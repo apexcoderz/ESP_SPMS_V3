@@ -1,20 +1,20 @@
 /*!
  * SPMS Core Library
  * Copyright (c) 2024-2026 ApexCoderz
- * Licensed under Custom Non-Commercial License. 
+ * Licensed under Custom Non-Commercial License.
  * See LICENSE file for details.
- * 
+ *
  * @file spms.config.h
  */
 
 #ifndef SPMS_CONFIG_H
 #define SPMS_CONFIG_H
 
-//  CREDITS & MACROS 
-#define ApexCoderz      // Do Not Remove
-#define Codecztron      // Do Not Remove 
+//  CREDITS & MACROS
+#define ApexCoderz // Do Not Remove
+#define Codecztron // Do Not Remove
 
-//  PIN DEFINITIONS 
+//  PIN DEFINITIONS
 #define OLED_SDA 21
 #define OLED_SCL 22
 #define RELAY_PIN 26
@@ -25,11 +25,31 @@
 #define SCREEN_ADDRESS 0x3C
 #define SOIL_MOISTURE_PIN 34
 
-//  TIMING CONFIGURATION 
-#define SENSOR_READ_INTERVAL 2000      // 2 Seconds
-#define DISPLAY_UPDATE_INTERVAL 3000   // 3 Seconds
-#define ML_UPDATE_INTERVAL 10000       // 10 Seconds
-#define CHART_DATA_POINTS 72           // 72 points = 24 Hour
-#define CHART_SAVE_INTERVAL 1200000    // 20 Minute
+//  TIMING CONFIGURATION
+#define SENSOR_READ_INTERVAL 2000    // 2 Seconds
+#define DISPLAY_UPDATE_INTERVAL 3000 // 3 Seconds
+#define ML_UPDATE_INTERVAL 10000     // 10 Seconds
+#define CHART_DATA_POINTS 72         // 72 points = 24 Hour
+#define CHART_SAVE_INTERVAL 1200000  // 20 Minute
+
+#ifndef MQTT_BROKER
+#define MQTT_BROKER "ALAMAT_DEFAULT_JIKA_ENV_GAGAL"
+#endif
+
+#ifndef MQTT_PORT
+#define MQTT_PORT 8883
+#endif
+
+#ifndef MQTT_USER
+#define MQTT_USER "USER_DEFAULT"
+#endif
+
+#ifndef MQTT_PASSWORD
+#define MQTT_PASSWORD "PASS_DEFAULT"
+#endif
+
+#ifndef MQTT_TOPIC_PUB
+#define MQTT_TOPIC_PUB "spms/data"
+#endif
 
 #endif

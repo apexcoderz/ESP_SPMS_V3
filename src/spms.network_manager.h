@@ -9,8 +9,17 @@
 
 #ifndef SPMS_NETWORK_MANAGER_H
 #define SPMS_NETWORK_MANAGER_H
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
 
-extern void setupWiFi();
-extern void setupWebServer();
+void setupWiFi();
+void setupWebServer();
+void controlRelay(bool state);
 
+void setupMQTT();
+void checkMQTTConnection();
+void publishSensorData();
+
+extern WiFiClientSecure espClient;
+extern PubSubClient mqttClient;
 #endif
