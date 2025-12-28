@@ -145,8 +145,25 @@ void setupWebServer() {
   server.on("/api/automode", HTTP_POST, [](AsyncWebServerRequest *request){
     if(request->hasParam("state", true)) {
       String state = request->getParam("state", true)->value();
-      systemState.autoMode = (state == "true" || state == "1");
-      request->send(200, "text/plain", "OK");
+      bool newState = (state == "true" || state == "1");
+      systemState.autoMode = newState;
+      // Persist the selection so restarts keep the user preference
+      preferences.putBool("autoMode", newState);
+
+      // Log for debugging
+      Serial.print("$SYS> /api/automode set to ");
+      Serial.println(newState ? "ON" : "OFF");
+
+      // Immediately notify connected clients via SSE (as part of sensor-data channel)
+      StaticJsonDocument<128> doc;
+      doc["autoMode"] = systemState.autoMode;
+      doc["relayState"] = systemState.relayState;
+      String payload;
+      serializeJson(doc, payload);
+      events.send(payload.c_str(), "sensor-data", millis());
+
+      // Return the JSON payload as confirmation
+      request->send(200, "application/json", payload);
     } else {
       request->send(400, "text/plain", "Missing parameter");
     }

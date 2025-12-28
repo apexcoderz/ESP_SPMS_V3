@@ -71,6 +71,7 @@ void readSensors() {
   doc["soilTemp"] = sensorData.soilTemp;
   doc["soilMoisture"] = sensorData.soilMoisturePercent;
   doc["relayState"] = systemState.relayState;
+  doc["autoMode"] = systemState.autoMode;
   doc["mlScore"] = systemState.mlScore;
   doc["uptime"] = systemState.uptime / 1000; // seconds
   

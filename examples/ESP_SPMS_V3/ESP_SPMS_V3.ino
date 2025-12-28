@@ -76,6 +76,11 @@ void setup()
   // Initialize Preferences
   preferences.begin("plant-config", false);
 
+  // Restore persisted Auto mode (if previously saved)
+  systemState.autoMode = preferences.getBool("autoMode", systemState.autoMode);
+  Serial.print("$SYS> Loaded Auto mode: ");
+  Serial.println(systemState.autoMode ? "ENABLED" : "DISABLED");
+
   // Setup hardware
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, HIGH); // Relay OFF (active LOW!)

@@ -254,6 +254,7 @@ String getHTML() {
     let eventSource;
     let myChart;
     let currentPresets = [];
+    let ignoreAutoUntil = 0; // timestamp (ms) to ignore server autoMode overwrites after a user toggle
     const statusEl = document.getElementById('connection-status');
 
     function switchTab(clickedEl, tabName) {
@@ -285,14 +286,30 @@ String getHTML() {
     }
 
     function updateUI(data) {
-      document.getElementById('airTemp').textContent = data.airTemp.toFixed(1);
-      document.getElementById('airHumidity').textContent = data.airHumidity.toFixed(0);
-      document.getElementById('soilTemp').textContent = data.soilTemp.toFixed(1);
-      const moisture = parseInt(data.soilMoisture);
-      document.getElementById('soilMoisture').textContent = moisture;
-      document.getElementById('moistureBar').style.width = moisture + '%';
-      document.getElementById('mlScore').textContent = data.mlScore.toFixed(2);
-      document.getElementById('mlBar').style.width = (data.mlScore * 100) + '%';
+      if (data.airTemp !== undefined) document.getElementById('airTemp').textContent = data.airTemp.toFixed(1);
+      if (data.airHumidity !== undefined) document.getElementById('airHumidity').textContent = data.airHumidity.toFixed(0);
+      if (data.soilTemp !== undefined) document.getElementById('soilTemp').textContent = data.soilTemp.toFixed(1);
+      if (data.soilMoisture !== undefined) {
+        const moisture = parseInt(data.soilMoisture);
+        document.getElementById('soilMoisture').textContent = moisture;
+        document.getElementById('moistureBar').style.width = moisture + '%';
+      }
+      if (data.mlScore !== undefined) {
+        document.getElementById('mlScore').textContent = data.mlScore.toFixed(2);
+        document.getElementById('mlBar').style.width = (data.mlScore * 100) + '%';
+      }
+
+      // Update relay and auto-mode UI. Respect recent user toggles with a short debounce window
+      if (typeof data.relayState !== 'undefined') {
+        document.getElementById('relaySwitch').checked = data.relayState;
+      }
+
+      if (typeof data.autoMode !== 'undefined' && Date.now() > ignoreAutoUntil) {
+        const autoState = data.autoMode;
+        document.getElementById('autoSwitch').checked = autoState;
+        const manualRow = document.getElementById('manualControlRow');
+        if (autoState) manualRow.classList.add('hidden'); else manualRow.classList.remove('hidden');
+      }
     }
 
     async function fetchData() {
@@ -301,20 +318,22 @@ String getHTML() {
         const data = await res.json();
         updateUI(data);
         document.getElementById('relaySwitch').checked = data.relayState;
-        document.getElementById('autoSwitch').checked = data.autoMode;
+        // Only update autoSwitch from server when we are not in the immediate debounce window
+        if (Date.now() > ignoreAutoUntil) {
+          document.getElementById('autoSwitch').checked = data.autoMode;
+          const manualRow = document.getElementById('manualControlRow');
+          if (data.autoMode) {
+              manualRow.classList.add('hidden');
+          } else {
+              manualRow.classList.remove('hidden');
+          }
+        }
         document.getElementById('wifi-status').textContent = data.isAPMode ? 'Mode AP' : 'Terhubung';
         document.getElementById('wifi-ssid').textContent = data.isAPMode ? 'SPMSv3-Config' : data.ssid;
         document.getElementById('wifi-ip').textContent = data.ipAddress;
         document.getElementById('wifi-rssi').textContent = data.isAPMode ? 'N/A' : data.rssi + ' dBm';
         document.getElementById('mlThreshold').value = data.mlThreshold;
         document.getElementById('currentThreshold').textContent = data.mlThreshold;
-        document.getElementById('autoSwitch').checked = data.autoMode;
-        const manualRow = document.getElementById('manualControlRow');
-        if (data.autoMode) {
-            manualRow.classList.add('hidden');
-        } else {
-            manualRow.classList.remove('hidden');
-        }
       } catch(e) { console.log("Fetch error"); }
     }
 
@@ -394,31 +413,45 @@ String getHTML() {
     const manualRow = document.getElementById('manualControlRow');
     const manualSwitch = document.getElementById('relaySwitch');
 
+    // Optimistic UI: apply immediate changes locally
     if (state) {
-        // 1. Sembunyikan baris manual
         manualRow.classList.add('hidden');
-        
-        // 2. Jika manual sedang ON, matikan (Revisi 2)
         if (manualSwitch.checked) {
-        manualSwitch.checked = false;
-        // Kirim perintah ke server untuk mematikan relay secara fisik
-        await fetch('/api/relay', {
-            method:'POST', 
-            headers:{'Content-Type':'application/x-www-form-urlencoded'}, 
-            body:'state=false'
-        });
+          manualSwitch.checked = false;
+          // Best-effort to turn off physical relay
+          try { await fetch('/api/relay', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'state=false'}); } catch(e) { console.warn('relay-off request failed'); }
         }
     } else {
-        // Munculkan kembali jika auto OFF
         manualRow.classList.remove('hidden');
     }
 
-    // Kirim status mode auto ke server
-    await fetch('/api/automode', {
-        method:'POST', 
-        headers:{'Content-Type':'application/x-www-form-urlencoded'}, 
-        body:'state=' + state
-    });
+    // Debounce server overwrites for a short window
+    ignoreAutoUntil = Date.now() + 2000;
+
+    // Send update and handle failure
+    try {
+      const res = await fetch('/api/automode', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'state=' + state});
+      if (!res.ok) {
+        // revert UI on failure
+        document.getElementById('autoSwitch').checked = !state;
+        if (state) manualRow.classList.remove('hidden'); else manualRow.classList.add('hidden');
+        alert('Gagal menyimpan mode otomatis');
+      } else {
+        // sync with server response
+        try {
+          const json = await res.json();
+          if (typeof json.autoMode !== 'undefined') {
+            document.getElementById('autoSwitch').checked = json.autoMode;
+          }
+        } catch (e) {
+          // keep optimistic state if server returns non-JSON
+        }
+      }
+    } catch (e) {
+      document.getElementById('autoSwitch').checked = !state;
+      if (state) manualRow.classList.remove('hidden'); else manualRow.classList.add('hidden');
+      alert('gagal mengupdate mode');
+    }
     }
 
     async function saveWiFi() {
