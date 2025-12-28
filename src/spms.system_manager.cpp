@@ -160,5 +160,8 @@ void runMLModel() {
       Serial.print("   ML Score: ");
       Serial.println(systemState.mlScore, 3);
     }
+  } else 
+  {
+    // In manual mode, do nothing
   }
 }

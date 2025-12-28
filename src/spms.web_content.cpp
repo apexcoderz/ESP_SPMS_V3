@@ -111,9 +111,9 @@ String getHTML() {
       </div>
 
       <div class="nav-tabs">
-        <div class="nav-tab active" onclick="switchTab('overview')">Overview</div>
-        <div class="nav-tab" onclick="switchTab('chart')">Grafik</div>
-        <div class="nav-tab" onclick="switchTab('settings')">Pengaturan</div>
+        <div class="nav-tab active" onclick="switchTab(this, 'overview')">Overview</div>
+        <div class="nav-tab" onclick="switchTab(this, 'chart')">Grafik</div>
+        <div class="nav-tab" onclick="switchTab(this, 'settings')">Pengaturan</div>
       </div>
 
       <div id="tab-overview" class="tab-content">
@@ -201,12 +201,12 @@ String getHTML() {
         <div class="panel">
           <h3>Kontrol Perangkat</h3>
           <div class="control-row">
-            <div class="control-label"><span>Valve/Pompa Air</span><span class="subtitle">Kontrol manual valve air</span></div>
-            <label class="switch"><input type="checkbox" id="relaySwitch" onchange="toggleRelay()"><span class="slider"></span></label>
-          </div>
-          <div class="control-row">
             <div class="control-label"><span>Mode Otomatis (AI)</span><span class="subtitle">Sistem AI menentukan kapan menyiram</span></div>
             <label class="switch"><input type="checkbox" id="autoSwitch" onchange="toggleAuto()" checked><span class="slider"></span></label>
+          </div>
+          <div class="control-row hidden" id="manualControlRow">
+            <div class="control-label"><span>Valve/Pompa Air</span><span class="subtitle">Kontrol manual valve air</span></div>
+            <label class="switch"><input type="checkbox" id="relaySwitch" onchange="toggleRelay()"><span class="slider"></span></label>
           </div>
           <div class="warning-box">
             <strong>⚠️ Perhatian:</strong> Saat mode otomatis aktif, kontrol manual valve akan dinonaktifkan.
@@ -248,8 +248,7 @@ String getHTML() {
           <p>© 2026 <strong>ApexCoders X Codecztron</strong></p>
           <p style="font-size: 0.8em; margin-top: 5px;">Smart Plant Monitoring System • All Rights Reserved</p>
       </footer>
-    </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script>
     let eventSource;
@@ -257,12 +256,12 @@ String getHTML() {
     let currentPresets = [];
     const statusEl = document.getElementById('connection-status');
 
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    function switchTab(clickedEl, tabName) {
+      document.querySelectorAll('.tab-content').forEach(node => node.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(node => node.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.remove('hidden');
-      event.target.classList.add('active');
-      if(tabName === 'chart') loadChartData();
+      clickedEl.classList.add('active');
+      if (tabName === 'chart') loadChartData();
     }
 
     function initSSE() {
@@ -309,6 +308,13 @@ String getHTML() {
         document.getElementById('wifi-rssi').textContent = data.isAPMode ? 'N/A' : data.rssi + ' dBm';
         document.getElementById('mlThreshold').value = data.mlThreshold;
         document.getElementById('currentThreshold').textContent = data.mlThreshold;
+        document.getElementById('autoSwitch').checked = data.autoMode;
+        const manualRow = document.getElementById('manualControlRow');
+        if (data.autoMode) {
+            manualRow.classList.add('hidden');
+        } else {
+            manualRow.classList.remove('hidden');
+        }
       } catch(e) { console.log("Fetch error"); }
     }
 
@@ -384,8 +390,35 @@ String getHTML() {
     }
 
     async function toggleAuto() {
-      const state = document.getElementById('autoSwitch').checked;
-      await fetch('/api/automode', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'state='+state});
+    const state = document.getElementById('autoSwitch').checked;
+    const manualRow = document.getElementById('manualControlRow');
+    const manualSwitch = document.getElementById('relaySwitch');
+
+    if (state) {
+        // 1. Sembunyikan baris manual
+        manualRow.classList.add('hidden');
+        
+        // 2. Jika manual sedang ON, matikan (Revisi 2)
+        if (manualSwitch.checked) {
+        manualSwitch.checked = false;
+        // Kirim perintah ke server untuk mematikan relay secara fisik
+        await fetch('/api/relay', {
+            method:'POST', 
+            headers:{'Content-Type':'application/x-www-form-urlencoded'}, 
+            body:'state=false'
+        });
+        }
+    } else {
+        // Munculkan kembali jika auto OFF
+        manualRow.classList.remove('hidden');
+    }
+
+    // Kirim status mode auto ke server
+    await fetch('/api/automode', {
+        method:'POST', 
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, 
+        body:'state=' + state
+    });
     }
 
     async function saveWiFi() {
