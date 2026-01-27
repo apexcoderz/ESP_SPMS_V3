@@ -21,7 +21,7 @@ WiFiClientSecure espClient;
 PubSubClient mqttClient(espClient);
 
 // Root CA HiveMQ (Let's Encrypt ISRG Root X1)
-// Sebenarnya bisa pakai setInsecure() untuk skip verifikasi, tapi ini lebih aman.
+// Opsional: Jika setInsecure() tidak jalan, uncomment setCACert di setupMQTT
 const char *root_ca =
     "-----BEGIN CERTIFICATE-----\n"
     "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n"
@@ -36,13 +36,96 @@ const char *root_ca =
     "q2+5m+Gq/j0kFeJ9L5R1L6t6+7+5h+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+\n"
     "-----END CERTIFICATE-----\n";
 
+// =============================================================
+// MQTT CALLBACK (Menerima Perintah dari Backend Node.js)
+// =============================================================
+void mqttCallback(char *topic, byte *payload, unsigned int length)
+{
+  Serial.print("$MQTT> Pesan masuk [");
+  Serial.print(topic);
+  Serial.print("]: ");
+
+  // 1. Convert Payload ke String
+  String message;
+  for (int i = 0; i < length; i++)
+  {
+    message += (char)payload[i];
+  }
+  Serial.println(message);
+
+  // 2. Parse JSON
+  StaticJsonDocument<1024> doc;
+  DeserializationError error = deserializeJson(doc, message);
+
+  if (error)
+  {
+    Serial.print("$MQTT> JSON Error: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  // 3. Eksekusi Perintah Berdasarkan "type"
+  const char *type = doc["type"];
+  JsonObject data = doc["payload"];
+
+  if (strcmp(type, "SET_RELAY") == 0)
+  {
+    bool state = data["state"];
+    Serial.printf("$MQTT> CMD: Set Relay -> %s\n", state ? "ON" : "OFF");
+    controlRelay(state); // Update Hardware
+    // systemState.relayState diupdate di dalam controlRelay
+  }
+  else if (strcmp(type, "SET_MODE") == 0 || strcmp(type, "SET_AUTO") == 0)
+  {
+    bool mode = data["autoMode"];
+    Serial.printf("$MQTT> CMD: Set Auto Mode -> %s\n", mode ? "ON" : "OFF");
+    systemState.autoMode = mode;
+  }
+  else if (strcmp(type, "SET_ML_CONFIG") == 0)
+  {
+    float thresh = data["threshold"];
+    const char *plant = data["plantType"];
+    
+    Serial.printf("$MQTT> CMD: Config ML -> Th: %.2f, Plant: %s\n", thresh, plant);
+    
+    mlModel.threshold = thresh;
+    mlModel.plantType = String(plant);
+    saveMLConfig(); // Simpan ke EEPROM/Preferences
+  }
+  else if (strcmp(type, "SET_CALIBRATION") == 0)
+  {
+    Serial.println("$MQTT> CMD: Set Calibration");
+    systemState.calAirTemp = data["calTemp"];
+    systemState.calAirHum = data["calHum"];
+    systemState.calSoilMoisture = data["calSoil"];
+    systemState.calSoilTemp = data["calSoilTemp"];
+    saveCalibrationConfig();
+  }
+  else if (strcmp(type, "SYSTEM_ACTION") == 0)
+  {
+    const char *action = data["action"];
+    if (strcmp(action, "RESTART") == 0 || strcmp(action, "reboot") == 0)
+    {
+      Serial.println("$MQTT> CMD: Restarting System...");
+      delay(1000);
+      ESP.restart();
+    }
+  }
+}
+
+// =============================================================
+// MQTT SETUP & CONNECTION
+// =============================================================
+
 void setupMQTT()
 {
-  // Konfigurasi SSL
-  // espClient.setCACert(root_ca);
-  espClient.setInsecure(); // Gunakan ini jika sertifikat di atas gagal
+  // Konfigurasi SSL HiveMQ
+  // espClient.setCACert(root_ca); // Gunakan sertifikat jika perlu
+  espClient.setInsecure(); // Skip verifikasi sertifikat (Lebih mudah & stabil)
 
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  mqttClient.setCallback(mqttCallback); // Daftarkan fungsi callback di atas
+  mqttClient.setBufferSize(2048);       // Perbesar buffer untuk JSON panjang
 }
 
 void checkMQTTConnection()
@@ -51,19 +134,26 @@ void checkMQTTConnection()
   {
     Serial.print("$NET> Connecting to HiveMQ...");
 
-    // Create random Client ID
+    // Create unique Client ID
     String clientId = "ESP32-SPMS-" + String(random(0xffff), HEX);
 
     if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASSWORD))
     {
       Serial.println("Connected!");
       systemState.mqttConnected = true;
+
+      // Subscribe ke topik Command
+      mqttClient.subscribe(MQTT_TOPIC_SUB);
+      Serial.print("$NET> Subscribed to: ");
+      Serial.println(MQTT_TOPIC_SUB);
     }
     else
     {
       Serial.print("Failed, rc=");
       Serial.println(mqttClient.state());
       systemState.mqttConnected = false;
+      // Delay kecil agar tidak spamming koneksi jika gagal terus
+      delay(2000); 
     }
   }
   mqttClient.loop();
@@ -77,24 +167,33 @@ void publishSensorData()
   // 1. Buat JSON Object
   StaticJsonDocument<512> doc;
 
-  // Masukkan data dari struct global sensorData
+  // Masukkan data sensor
   doc["temp"] = sensorData.airTemp;
   doc["hum"] = sensorData.airHumidity;
   doc["soil_moist"] = sensorData.soilMoisturePercent;
   doc["soil_temp"] = sensorData.soilTemp;
   doc["ml_score"] = systemState.mlScore; // Hasil analisis ML
   doc["relay"] = systemState.relayState;
+  
+  // Status tambahan untuk monitoring backend
+  doc["auto_mode"] = systemState.autoMode;
+  doc["rssi"] = WiFi.RSSI();
 
   // 2. Serialize ke String
   char jsonBuffer[512];
   serializeJson(doc, jsonBuffer);
 
   // 3. Publish ke HiveMQ
-  mqttClient.publish(MQTT_TOPIC_PUB, jsonBuffer);
-  Serial.println("$NET> JSON Published to HiveMQ");
+  if (mqttClient.publish(MQTT_TOPIC_PUB, jsonBuffer)) {
+    Serial.println("$NET> JSON Published to HiveMQ");
+  } else {
+    Serial.println("$NET> Failed to publish JSON");
+  }
 }
 
-// WIFI SETUP - with Static IP
+// =============================================================
+// WIFI SETUP (Static IP & AP Mode)
+// =============================================================
 void setupWiFi()
 {
   Serial.println("\n$SYS> WiFi Setup...");
@@ -120,7 +219,6 @@ void setupWiFi()
       }
     }
 
-    // hi adit is here!!
     WiFi.begin(systemState.ssid.c_str(), preferences.getString("password", "").c_str());
 
     int attempts = 0;
@@ -142,9 +240,6 @@ void setupWiFi()
       Serial.println("$SYS> WiFi Connected!");
       Serial.print("   IP: ");
       Serial.println(systemState.ipAddress);
-      Serial.print("   RSSI: ");
-      Serial.print(systemState.wifiRSSI);
-      Serial.println(" dBm");
       return;
     }
     else
@@ -168,48 +263,38 @@ void setupWiFi()
   Serial.println(systemState.ipAddress);
 }
 
+// =============================================================
+// WEB SERVER SETUP
+// =============================================================
 void setupWebServer()
 {
   Serial.println("\n$SYS> Starting Web Server...");
 
-  // ═══════════════════════════════════════════════════════════════
-  // (CORS CONFIGURATION) Mengizinkan akses dari aplikasi ke API
-  // ═══════════════════════════════════════════════════════════════
-  // Izinkan akses dari semua domain/ip (*)
+  // CORS Headers
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  // Izinkan method HTTP
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  // Izinkan header tertentu ( JSON/POST data)
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-  // ═══════════════════════════════════════════════════════════════
 
   // API: MAIN PAGE
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/html", getHTML()); });
 
+  // API: Calibration
   server.on("/api/calibration", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     bool changed = false;
-
-    // Terima Offset Suhu Udara
     if(request->hasParam("calTemp", true)) {
       systemState.calAirTemp = request->getParam("calTemp", true)->value().toFloat();
       changed = true;
     }
-
-    // Terima Offset Kelembaban Udara
     if(request->hasParam("calHum", true)) {
       systemState.calAirHum = request->getParam("calHum", true)->value().toFloat();
       changed = true;
     }
-
-    // Terima Offset Tanah
     if(request->hasParam("calSoil", true)) {
       systemState.calSoilMoisture = request->getParam("calSoil", true)->value().toFloat();
       changed = true;
     }
-
-    // Terima Offset Suhu Tanah
     if(request->hasParam("calSoilTemp", true)) {
       systemState.calSoilTemp = request->getParam("calSoilTemp", true)->value().toFloat();
       changed = true;
@@ -222,7 +307,7 @@ void setupWebServer()
       request->send(400, "text/plain", "No params");
     } });
 
-  // API: Get Current Sensor Data
+  // API: Get Current Data
   server.on("/api/data", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     StaticJsonDocument<1024> doc;
@@ -232,7 +317,6 @@ void setupWebServer()
     doc["airHumidity"] = sensorData.airHumidity;
     doc["soilTemp"] = sensorData.soilTemp;
     doc["soilMoisture"] = sensorData.soilMoisturePercent;
-    doc["soilMoistureRaw"] = sensorData.soilMoisture;
     
     // System state
     doc["relayState"] = systemState.relayState;
@@ -242,16 +326,14 @@ void setupWebServer()
     
     // WiFi info
     doc["wifiConnected"] = systemState.wifiConnected;
-    doc["isAPMode"] = isAPMode;
     doc["ssid"] = systemState.ssid;
     doc["ipAddress"] = systemState.ipAddress;
-    doc["rssi"] = systemState.wifiRSSI;
     
     // ML Config
     doc["mlThreshold"] = mlModel.threshold;
     doc["plantType"] = mlModel.plantType;
 
-    // Calibration Offsets
+    // Calibration
     doc["calTemp"] = systemState.calAirTemp;
     doc["calHum"] = systemState.calAirHum;
     doc["calSoil"] = systemState.calSoilMoisture;
@@ -265,15 +347,15 @@ void setupWebServer()
   server.on("/api/chart", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               request->send(200, "application/json", getChartDataJSON());
-              // you'l find me anywhere! aditya
             });
 
-  // API: Control Relay (Manual)
+  // API: Control Relay
   server.on("/api/relay", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     if(request->hasParam("state", true)) {
       String state = request->getParam("state", true)->value();
-      controlRelay(state == "true" || state == "1");
+      bool on = (state == "true" || state == "1");
+      controlRelay(on);
       request->send(200, "text/plain", "OK");
     } else {
       request->send(400, "text/plain", "Missing parameter");
@@ -288,93 +370,6 @@ void setupWebServer()
       request->send(200, "text/plain", "OK");
     } else {
       request->send(400, "text/plain", "Missing parameter");
-    } });
-
-  // API: Save WiFi Credentials & Auto Connect Check
-  server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request)
-            {
-    if(request->hasParam("ssid", true) && request->hasParam("password", true)) {
-      String ssid = request->getParam("ssid", true)->value();
-      String password = request->getParam("password", true)->value();
-      
-
-      // 0. STOP main loop display update
-      systemState.isWifiConfiguring = true; 
-
-      // 1. saving credential data to memory
-      saveWiFiCredentials(ssid, password);
-
-      layarOled.clearDisplay();
-      layarOled.setTextSize(1);
-      layarOled.setCursor(0, 0);
-      layarOled.println("Konfigurasi Disimpan");
-      layarOled.setCursor(0, 15);
-      layarOled.println("Mencoba Koneksi...");
-      layarOled.display();
-
-      // 3. activating Dual mode (AP+STA) 
-      WiFi.mode(WIFI_AP_STA);
-      WiFi.begin(ssid.c_str(), password.c_str());
-      
-      // 4. waiting for connection syatus (Timeout 15 sec)
-      int attempt = 0;
-      bool connected = false;
-      while(attempt < 30) { // 30 x 500ms = 15 sec
-        if(WiFi.status() == WL_CONNECTED) {
-          connected = true;
-          break;
-        }
-       
-        layarOled.print(".");
-        layarOled.display();
-        delay(500);
-        attempt++;
-      }
-
-      if(connected) {
-        // A. display connectivity on oled disp
-        layarOled.clearDisplay();
-        layarOled.setTextSize(1);
-        layarOled.setCursor(0, 0);
-        layarOled.println("WiFi CONNECTED! [OK]");
-        layarOled.setCursor(0, 15);
-        layarOled.println("Restarting sytem...");
-        layarOled.display();
-
-        // B. send notification to webserver
-        request->send(200, "text/plain", "connnection sucess, restarting system in 3 seconds...");
-        
-        // C. delay 3 sec
-        delay(3000);
-        
-        // D. Shutdown AP Mode
-        WiFi.softAPdisconnect(true);
-        WiFi.mode(WIFI_STA);
-        
-        // E. Restart systems
-        ESP.restart();
-        
-      } else {
-        // if connection was failed ( tobat )
-        
-        //disp notification on oled display
-        layarOled.clearDisplay();
-        layarOled.setCursor(0, 0);
-        layarOled.println("Can't connect!");
-        layarOled.setCursor(0, 15);
-        layarOled.println("check your password.");
-        layarOled.display();
-        
-        //send notification on webserver
-        request->send(400, "text/plain", "Cannot coonnected to WiFi... check your password");
-  
-        //0. Resume main loop
-        delay(3000); 
-        systemState.isWifiConfiguring = false; 
-      }
-
-    } else {
-      request->send(400, "text/plain", "Missing parameters");
     } });
 
   // API: Configure Static IP
@@ -409,11 +404,52 @@ void setupWebServer()
       request->send(400, "text/plain", "Missing IP parameters");
     } });
 
-  // API: Update ML Threshold
+  // API: WiFi Config
+  server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request)
+            {
+    if(request->hasParam("ssid", true) && request->hasParam("password", true)) {
+      String ssid = request->getParam("ssid", true)->value();
+      String password = request->getParam("password", true)->value();
+
+      systemState.isWifiConfiguring = true; 
+      saveWiFiCredentials(ssid, password);
+
+      layarOled.clearDisplay();
+      layarOled.setCursor(0, 0);
+      layarOled.println("Konfigurasi Disimpan");
+      layarOled.display();
+
+      WiFi.mode(WIFI_AP_STA);
+      WiFi.begin(ssid.c_str(), password.c_str());
+      
+      int attempt = 0;
+      bool connected = false;
+      while(attempt < 30) {
+        if(WiFi.status() == WL_CONNECTED) {
+          connected = true;
+          break;
+        }
+        delay(500);
+        attempt++;
+      }
+
+      if(connected) {
+        request->send(200, "text/plain", "Connected! Restarting...");
+        delay(3000);
+        WiFi.softAPdisconnect(true);
+        ESP.restart();
+      } else {
+        request->send(400, "text/plain", "Failed to connect");
+        systemState.isWifiConfiguring = false; 
+      }
+    } else {
+      request->send(400, "text/plain", "Missing parameters");
+    } });
+
+  // API: ML Config
   server.on("/api/mlconfig", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     bool changed = false;
-    
     if(request->hasParam("threshold", true)) {
       float newThreshold = request->getParam("threshold", true)->value().toFloat();
       if (newThreshold >= 0 && newThreshold <= 1.0) {
@@ -421,12 +457,10 @@ void setupWebServer()
         changed = true;
       }
     }
-    
     if(request->hasParam("plantType", true)) {
       mlModel.plantType = request->getParam("plantType", true)->value();
       changed = true;
     }
-    
     if(request->hasParam("optimalMoisture", true)) {
       mlModel.optimalSoilMoisture = request->getParam("optimalMoisture", true)->value().toFloat();
       changed = true;
@@ -436,83 +470,25 @@ void setupWebServer()
       saveMLConfig();
       request->send(200, "text/plain", "ML config updated");
     } else {
-      request->send(400, "text/plain", "No valid parameters");
-    } });
-
-  // API: Get Plant Presets
-  server.on("/api/presets", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    DynamicJsonDocument doc(1024);
-    JsonArray array = doc.to<JsonArray>();
-    
-    for(int i = 0; i < NUM_PRESETS; i++) {
-      JsonObject preset = array.createNestedObject();
-      preset["name"] = PLANT_PRESETS[i].name;
-      preset["moistureTarget"] = PLANT_PRESETS[i].moistureTarget;
-      preset["threshold"] = PLANT_PRESETS[i].threshold;
-      preset["description"] = PLANT_PRESETS[i].description;
-    }
-    
-    String response;
-    //Anytime Anywhere Adit is EVERYWHERE!
-    serializeJson(doc, response);
-    request->send(200, "application/json", response); });
-
-  // API: Apply Plant Preset
-  server.on("/api/applypreset", HTTP_POST, [](AsyncWebServerRequest *request)
-            {
-    if(request->hasParam("index", true)) {
-      int idx = request->getParam("index", true)->value().toInt();
-      if (idx >= 0 && idx < NUM_PRESETS) {
-        mlModel.plantType = PLANT_PRESETS[idx].name;
-        mlModel.threshold = PLANT_PRESETS[idx].threshold;
-        mlModel.optimalSoilMoisture = PLANT_PRESETS[idx].moistureTarget;
-        saveMLConfig();
-        request->send(200, "text/plain", "yeyy... Preset diterapkan");
-      } else {
-        request->send(400, "text/plain", "yahh.. Index preset tidak valid");
-      }
-    } else {
-      request->send(400, "text/plain", "LOH!?. Parameternya ilang");
+      request->send(400, "text/plain", "No parameters");
     } });
 
   // API: System Reset
   server.on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request)
             {
-    request->send(200, "text/plain", "Mereset data...");
+    request->send(200, "text/plain", "Resetting...");
     delay(500);
     ESP.restart(); });
 
-  // API: Clear WiFi Config (Reset to AP mode)
-  server.on("/api/clearwifi", HTTP_POST, [](AsyncWebServerRequest *request)
-            {
-    preferences.remove("ssid");
-    preferences.remove("password");
-    request->send(200, "text/plain", "Wifi berhasil di hapus, merestart...");
-    delay(1000);
-    ESP.restart(); });
-
-  // Server-Sent Events (SSE)
-  events.onConnect([](AsyncEventSourceClient *client)
-                   {
-    Serial.println("$SYS>  SSE Client Connected");
-    client->send("connected", NULL, millis(), 1000); });
-  server.addHandler(&events);
-
-  // 404 Handler
+  // 404 & CORS OPTIONS
   server.onNotFound([](AsyncWebServerRequest *request)
                     {
-    // Jika request adalah OPTIONS (Cek CORS), langsung jawab OK (200)
     if (request->method() == HTTP_OPTIONS) {
       request->send(200);
     } else {
-      // Jika benar-benar halaman tidak ada
       request->send(404, "text/plain", "Not Found");
     } });
 
-  // Start server
   server.begin();
   Serial.println("   $SYS>  Web Server Started");
-  Serial.print("   Access at: http://");
-  Serial.println(systemState.ipAddress);
 }

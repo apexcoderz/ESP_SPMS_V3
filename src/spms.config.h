@@ -18,7 +18,7 @@
 #define OLED_SDA 21
 #define OLED_SCL 22
 #define RELAY_PIN 26
-#define DS18B20_PIN 4
+#define DS18B20_PIN 13
 #define OLED_RESET -1
 #define OLED_HEIGHT 32
 #define OLED_WIDTH 128
@@ -32,10 +32,11 @@
 #define CHART_DATA_POINTS 72         // 72 points = 24 Hour
 #define CHART_SAVE_INTERVAL 1200000  // 20 Minute
 
-#define MQTT_BROKER     "" 
+#define MQTT_BROKER     "2c0f5cbc458c41f2b7d3ead26515e9c3.s1.eu.hivemq.cloud"
 #define MQTT_PORT       8883                        
-#define MQTT_USER       ""                
-#define MQTT_PASSWORD   ""         
-#define MQTT_TOPIC_PUB  ""
+#define MQTT_USER       "AgroDurenIOT_1"                
+#define MQTT_PASSWORD   "0gtG4uXx8Jq6TkJf"         
+#define MQTT_TOPIC_PUB  "spms/data"
+#define MQTT_TOPIC_SUB "spms/command"
 
 #endif
