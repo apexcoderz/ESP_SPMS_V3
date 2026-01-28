@@ -265,14 +265,8 @@ void loop()
   if (WiFi.status() == WL_CONNECTED)
   {
     checkMQTTConnection();
-
-    // Kirim data setiap 5 detik
-    static unsigned long lastMqttPub = 0;
-    if (millis() - lastMqttPub > 1000)
-    {
-      publishSensorData();
-      lastMqttPub = millis();
-    }
+    // Send sensor data via MQTT or HTTP 
+    publishSensorData();
   }
 
   delay(10);

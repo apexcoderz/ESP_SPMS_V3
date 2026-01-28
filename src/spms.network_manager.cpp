@@ -15,10 +15,15 @@
 #include "spms.web_content.h"
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include <HTTPClient.h>
 
 // Instansiasi Client
 WiFiClientSecure espClient;
 PubSubClient mqttClient(espClient);
+
+// HTTP Logging Control
+unsigned long lastHttpLog = 0;
+const long httpLogInterval = 60000; // Kirim data tiap 60 detik (Bisa diubah)
 
 // Root CA HiveMQ (Let's Encrypt ISRG Root X1)
 // Opsional: Jika setInsecure() tidak jalan, uncomment setCACert di setupMQTT
@@ -159,35 +164,77 @@ void checkMQTTConnection()
   mqttClient.loop();
 }
 
+void sendDataToServer() {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  HTTPClient http;
+  WiFiClientSecure client;
+  client.setInsecure(); // Agar koneksi HTTPS ke Vercel tidak ribet sertifikat
+
+  // Mulai koneksi
+  if (!http.begin(client, SERVER_LOG_URL)) {
+    Serial.println("$NET> Gagal connect ke Server Log");
+    return;
+  }
+
+  http.addHeader("Content-Type", "application/json");
+
+  // Susun JSON string manual (Hemat memori)
+  // Pastikan nama key ("temp", "hum") SAMA PERSIS dengan di sensorController.js
+  String payload = "{";
+  payload += "\"device_id\":\"ESP32-MAIN\",";
+  payload += "\"temp\":" + String(sensorData.airTemp) + ",";
+  payload += "\"hum\":" + String(sensorData.airHumidity) + ",";
+  payload += "\"soil_moist\":" + String(sensorData.soilMoisturePercent) + ",";
+  payload += "\"soil_temp\":" + String(sensorData.soilTemp) + ",";
+  payload += "\"ml_score\":" + String(systemState.mlScore) + ",";
+  payload += "\"relay\":" + String(systemState.relayState ? "true" : "false");
+  payload += "}";
+
+  Serial.print("$NET> Kirim Log HTTP... ");
+  int httpCode = http.POST(payload);
+
+  if (httpCode > 0) {
+    Serial.printf("OK (%d)\n", httpCode);
+  } else {
+    Serial.printf("Gagal (%s)\n", http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+}
+
 void publishSensorData()
 {
-  if (!mqttClient.connected())
-    return;
+  // --- BAGIAN 1: MQTT (Kirim Data Realtime) ---
+  // Kode ini hanya akan dicompile jika ENABLE_MQTT_PUBLISH diset ke 1
+  #if ENABLE_MQTT_PUBLISH == 1 
+    if (mqttClient.connected())
+    {
+      StaticJsonDocument<512> doc;
+      doc["temp"] = sensorData.airTemp;
+      doc["hum"] = sensorData.airHumidity;
+      doc["soil_moist"] = sensorData.soilMoisturePercent;
+      doc["soil_temp"] = sensorData.soilTemp;
+      doc["ml_score"] = systemState.mlScore;
+      doc["relay"] = systemState.relayState;
+      doc["auto_mode"] = systemState.autoMode;
+      doc["rssi"] = WiFi.RSSI();
 
-  // 1. Buat JSON Object
-  StaticJsonDocument<512> doc;
+      char jsonBuffer[512];
+      serializeJson(doc, jsonBuffer);
 
-  // Masukkan data sensor
-  doc["temp"] = sensorData.airTemp;
-  doc["hum"] = sensorData.airHumidity;
-  doc["soil_moist"] = sensorData.soilMoisturePercent;
-  doc["soil_temp"] = sensorData.soilTemp;
-  doc["ml_score"] = systemState.mlScore; // Hasil analisis ML
-  doc["relay"] = systemState.relayState;
-  
-  // Status tambahan untuk monitoring backend
-  doc["auto_mode"] = systemState.autoMode;
-  doc["rssi"] = WiFi.RSSI();
+      if (mqttClient.publish(MQTT_TOPIC_PUB, jsonBuffer)) {
+        Serial.println("$NET> MQTT Published");
+      }
+    }
+  #endif
 
-  // 2. Serialize ke String
-  char jsonBuffer[512];
-  serializeJson(doc, jsonBuffer);
-
-  // 3. Publish ke HiveMQ
-  if (mqttClient.publish(MQTT_TOPIC_PUB, jsonBuffer)) {
-    Serial.println("$NET> JSON Published to HiveMQ");
-  } else {
-    Serial.println("$NET> Failed to publish JSON");
+  // --- BAGIAN 2: HTTP LOGGING (Wajib Aktif untuk Database) ---
+  unsigned long now = millis();
+  if (now - lastHttpLog > httpLogInterval) 
+  {
+    lastHttpLog = now;
+    sendDataToServer(); 
   }
 }
 

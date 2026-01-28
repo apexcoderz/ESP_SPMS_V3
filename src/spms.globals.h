@@ -22,6 +22,11 @@
 #include <ESPAsyncWebServer.h>
 #include "spms.types.h"
 #include "spms.config.h"
+// server log URL
+#define SERVER_LOG_URL "https://server-node-agro-duren.vercel.app/api/sensor/log"
+// --- KONFIGURASI PENGIRIMAN DATA ---
+#define ENABLE_MQTT_PUBLISH  0  // Set ke 0 untuk MATIKAN kirim data MQTT (Hemat)
+                                // Set ke 1 untuk NYALAKAN kirim data MQTT (Realtime)
 
 // Hardware Objects
 extern Adafruit_AHTX0 sensor_ahteh;
